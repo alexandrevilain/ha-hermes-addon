@@ -1,0 +1,45 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    ":semanticCommits"
+  ],
+  "enabledManagers": [
+    "dockerfile",
+    "github-actions"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "packageRules": [
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "addLabels": [
+        "github_actions"
+      ],
+      "schedule": [
+        "before 8am on monday"
+      ]
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchDepTypes": [
+        "github-runner",
+        "uses-with"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Hermes bumps ship as a patch release (release-please)",
+      "matchPackageNames": [
+        "nousresearch/hermes-agent"
+      ],
+      "semanticCommitType": "fix"
+    }
+  ]
+}

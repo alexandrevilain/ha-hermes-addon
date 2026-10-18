@@ -1,0 +1,21 @@
+name: Hermes Agent
+version: "0.0.1" # x-release-please-version
+slug: hermes
+description: Hermes Agent (Nous Research) with its web dashboard in the sidebar.
+url: https://github.com/alexandrevilain/ha-hermes-addon
+# Prebuilt by .github/workflows/build.yaml, tagged with `version`.
+image: ghcr.io/alexandrevilain/ha-hermes-addon
+arch:
+  - amd64
+  - aarch64
+# The official image's s6-overlay must be PID 1.
+init: false
+ingress: true
+ingress_port: 8099
+panel_icon: mdi:robot
+panel_title: Hermes
+# All Hermes state (HERMES_HOME and HOME) lives here, on the host disk.
+map:
+  - type: addon_config
+    read_only: false
+    path: /opt/data
