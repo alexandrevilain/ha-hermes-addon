@@ -3,15 +3,34 @@ version: 0.0.2
 slug: hermes
 description: Hermes Agent (Nous Research) with its web dashboard in the sidebar.
 url: https://github.com/alexandrevilain/ha-hermes-addon
-image: ghcr.io/alexandrevilain/ha-hermes-addon
+ingress: true
+ingress_stream: true
+panel_icon: mdi:robot
+panel_title: Hermes
+init: false
 arch:
   - amd64
   - aarch64
-init: false
-ingress: true
-panel_icon: mdi:robot
-panel_title: Hermes
+backup: cold
 map:
   - type: addon_config
     read_only: false
     path: /opt/data
+  - type: ssl
+    read_only: true
+ports:
+  9119/tcp: null
+options:
+  remote_access: {}
+  ssl: false
+  certfile: fullchain.pem
+  keyfile: privkey.pem
+schema:
+  remote_access:
+    public_url: url?
+    username: str?
+    password: password?
+  ssl: bool
+  certfile: str
+  keyfile: str
+image: ghcr.io/alexandrevilain/ha-hermes-addon

@@ -1,0 +1,41 @@
+---
+configuration:
+  remote_access:
+    name: Remote access
+    description: >-
+      Lets Hermes Desktop, the mobile app and MCP servers that sign in with
+      OAuth reach Hermes on port 9119. Once it is on, the sidebar asks for this
+      login too. See the Documentation tab.
+    fields:
+      public_url:
+        name: Public URL
+        description: >-
+          The address you use to reach Hermes, e.g. https://ha.example.com:9119.
+          Setting it turns remote access on. It needs a username and a password.
+      username:
+        name: Username
+        description: The username for Hermes' own login.
+      password:
+        name: Password
+        description: >-
+          The password for Hermes' own login. Use a long, unique password.
+  ssl:
+    name: SSL
+    description: >-
+      Serves port 9119 over HTTPS, with Home Assistant's certificate. Leave it
+      off if you use a proxy or tunnel app (Cloudflared...).
+  certfile:
+    name: Certificate file
+    description: >-
+      The certificate file to use for SSL. The file must be in the `/ssl/`
+      folder.
+  keyfile:
+    name: Private key file
+    description: >-
+      The private key file to use for SSL. The file must be in the `/ssl/`
+      folder.
+network:
+  9119/tcp: >-
+    Remote access for Hermes Desktop and the mobile app. The sidebar doesn't
+    need it. It only answers once you set up remote access: see the
+    Documentation tab.

@@ -1,0 +1,97 @@
+#!/opt/hermes/.venv/bin/python
+"""Sets up remote access on port 9119 at each start of the app.
+
+- Gives Hermes its login (from the app options) and a signing secret, as
+  environment variables. Services read ENV_DIR through with-contenv.
+- Opens port 9119 in nginx, over TLS with Home Assistant's certificate when
+  "ssl" is on.
+
+This script runs before 02-reconcile-profiles, which starts the profile
+gateways, so they get these variables too.
+"""
+import json
+import os
+import secrets
+import shutil
+import sys
+
+RUN_DIR = "/run/nginx-direct"
+SECRET = "/data/dashboard_secret"
+ENV_DIR = "/run/s6/container_environment"
+
+
+def write_private(path, value):
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    # os.open only applies the mode to a new file. An existing file keeps its
+    # old mode, so set it again.
+    os.fchmod(fd, 0o600)
+    with open(fd, "w") as f:
+        f.write(value)
+
+
+try:
+    with open("/data/options.json") as f:
+        options = json.load(f)
+except FileNotFoundError:
+    options = {}
+
+# Write the login first: if a later step fails, Hermes must not keep the login
+# of the previous start.
+# A public URL turns Hermes' login on. Hermes then refuses to start the
+# dashboard without a username and password. So without them, ignore the
+# public URL and say why in the log.
+remote = options.get("remote_access") or {}
+public_url = (remote.get("public_url") or "").strip()
+if public_url and not (remote.get("username") and remote.get("password")):
+    print("[direct-access] public_url needs a username and password: ignored.", file=sys.stderr)
+    public_url = None
+env = {
+    "HERMES_DASHBOARD_BASIC_AUTH_USERNAME": remote.get("username"),
+    "HERMES_DASHBOARD_BASIC_AUTH_PASSWORD": remote.get("password"),
+    "HERMES_DASHBOARD_PUBLIC_URL": public_url,
+}
+# /run is not a tmpfs here: its files survive a container restart. So when an
+# option is now empty, delete its file, or Hermes would keep the old value.
+for name, value in env.items():
+    path = os.path.join(ENV_DIR, name)
+    if value:
+        write_private(path, value)
+    elif os.path.exists(path):
+        os.unlink(path)
+
+# Hermes signs its login sessions with this secret. Keep it in /data, so users
+# stay logged in after a restart. Only root can read /data, so a plain text
+# secret is fine there.
+# An empty file means a previous write stopped after O_TRUNC emptied the file:
+# create a new secret.
+# shutil.copy also copies the 0600 mode.
+if not os.path.isfile(SECRET) or not os.path.getsize(SECRET):
+    write_private(SECRET, secrets.token_hex(32))
+shutil.copy(SECRET, os.path.join(ENV_DIR, "HERMES_DASHBOARD_BASIC_AUTH_SECRET"))
+
+# Start from an empty folder: like ENV_DIR, /run survives a restart, and links
+# from the previous start (e.g. the TLS files when "ssl" was on) must go.
+shutil.rmtree(RUN_DIR, ignore_errors=True)
+os.makedirs(RUN_DIR)
+
+# If "ssl" is on but a certificate file is missing, keep 9119 closed. Do not
+# fall back to plain HTTP: the user expects HTTPS. The sidebar still works.
+listen = "/etc/nginx/listen-http.conf"
+if options.get("ssl"):
+    files = {link: os.path.join("/ssl", options[option])
+             for option, link in (("certfile", "cert.pem"), ("keyfile", "key.pem"))}
+    missing = [path for path in files.values() if not os.path.isfile(path)]
+    if missing:
+        print(f"[direct-access] ssl is on but {', '.join(missing)} is missing: 9119 stays closed.",
+              file=sys.stderr)
+        listen = None
+    else:
+        for link, path in files.items():
+            os.symlink(path, os.path.join(RUN_DIR, link))
+        listen = "/etc/nginx/listen-https.conf"
+if listen:
+    # Name this link "listen", not "listen.conf": nginx.conf includes every
+    # *.conf file of this folder in its http block, and "listen" is only valid
+    # inside a server block. direct.conf includes it from its server block.
+    os.symlink(listen, os.path.join(RUN_DIR, "listen"))
+    os.symlink("/etc/nginx/direct.conf", os.path.join(RUN_DIR, "direct.conf"))
