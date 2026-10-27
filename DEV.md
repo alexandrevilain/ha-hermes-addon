@@ -27,11 +27,11 @@ add-on devcontainer image), with real ingress and the sidebar panel.
 ./dev.sh reload   # copy hermes/ in, then build + (re)start the add-on (~15 s)
 ./dev.sh watch    # same, on every change under hermes/
 ./dev.sh logs     # add-on logs
-./dev.sh down     # state is kept in the hermes-ha-dev-* volumes; docker volume rm them to reset
+./dev.sh down     # state is kept in the hermes-ha-* volumes; docker volume rm them to reset
 ```
 
 From inside Hermes, Home Assistant is at `http://homeassistant:8123`. Run any other
-`ha` command with `docker exec hermes-ha-dev ha …`.
+`ha` command with `docker exec hermes-ha ha …`.
 
 ## 3. Real test in Home Assistant (local add-on)
 

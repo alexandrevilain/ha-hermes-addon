@@ -4,22 +4,20 @@
 set -e
 cd "$(dirname "$0")"
 
-NAME=hermes-ha-dev
-IMAGE=ghcr.io/home-assistant/devcontainer:2-addons
+NAME=hermes-ha
+IMAGE=ghcr.io/home-assistant/devcontainer:6-apps
 
 case "$1" in
 up)
-    # The image runs the dev channel, which needs systemd here. Use stable instead: drop
-    # dev.json and SUPERVISOR_DEV (it forces the dev channel). /run/supervisor: Core mounts it.
-    docker start "$NAME" 2>/dev/null || docker run -dt --privileged --name "$NAME" -p 7123:80 -p 9119:9119 \
-        -v "$NAME-docker:/var/lib/docker" -v "$NAME-supervisor:/mnt/supervisor" \
-        -v "$PWD:/workspace:ro" "$IMAGE" bash -c '
-            set -e
-            sed -i s/dev.json/stable.json/ /etc/supervisor_scripts/common
-            sed -i /SUPERVISOR_DEV=/d /usr/bin/supervisor_run
-            mkdir -p /run/supervisor
-            bash /usr/bin/supervisor_bootstrap
-            exec bash /usr/bin/supervisor_run'
+    # Same setup as the official apps devcontainer: systemd boots dockerd, then supervisor_run.
+    # Core serves on 80; its 8123 only redirects to :80.
+    docker start "$NAME" 2>/dev/null || docker run -d --privileged --name "$NAME" \
+        -p 7123:80 -p 9119:9119 -e SUPERVISOR_CHANNEL=stable \
+        -v "$NAME-docker:/var/lib/docker" -v "$NAME-containerd:/var/lib/containerd" \
+        -v "$NAME-supervisor:/mnt/supervisor" --tmpfs /tmp \
+        -v "$PWD:/workspace:ro" "$IMAGE"
+    until docker exec "$NAME" docker info >/dev/null 2>&1; do sleep 1; done
+    docker exec -d -e SUPERVISOR_CHANNEL=stable "$NAME" supervisor_run
     echo "Home Assistant: http://localhost:7123 (first boot takes a few minutes)"
     ;;
 reload)
