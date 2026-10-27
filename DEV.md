@@ -17,7 +17,23 @@ The `hermes-dev-data` volume holds what gets persisted (`config.yaml`, `.env`,
 sessions…). Run `docker volume rm hermes-dev-data` to start fresh. (Avoid bind
 mounts on macOS: SQLite doesn't cope well across the VM boundary.)
 
-## 2. Real test in Home Assistant (local add-on)
+## 2. Local Home Assistant (Docker, with Supervisor)
+
+`dev.sh` runs Home Assistant + Supervisor in one privileged container (the official
+add-on devcontainer image), with real ingress and the sidebar panel.
+
+```sh
+./dev.sh up       # http://localhost:7123, onboard once (first boot takes a few minutes)
+./dev.sh reload   # copy hermes/ in, then build + (re)start the add-on (~15 s)
+./dev.sh watch    # same, on every change under hermes/
+./dev.sh logs     # add-on logs
+./dev.sh down     # state is kept in the hermes-ha-dev-* volumes; docker volume rm them to reset
+```
+
+From inside Hermes, Home Assistant is at `http://homeassistant:8123`. Run any other
+`ha` command with `docker exec hermes-ha-dev ha …`.
+
+## 3. Real test in Home Assistant (local add-on)
 
 1. Install the **Samba share** or **Advanced SSH & Web Terminal** add-on in HA.
 2. Copy the `hermes/` folder to `/local_apps/hermes/` (`/addons/` on older HA versions):
@@ -35,7 +51,7 @@ After a change: copy the folder again, then hit **Rebuild** on the add-on page
 
 Logs: the add-on's **Log** tab, or `ha addons logs local_hermes` over SSH.
 
-## 3. Checklist
+## 4. Checklist
 
 - [ ] The dashboard renders in the sidebar (CSS/JS load, no blank page).
 - [ ] The **Chat** tab opens the TUI (WebSocket works through ingress).
