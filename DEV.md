@@ -45,6 +45,14 @@ Logs: the add-on's **Log** tab, or `ha addons logs local_hermes` over SSH.
       read an HA entity's state; another profile's agent can't.
 - [ ] Restart the add-on: config, sessions and Telegram are still there.
 - [ ] Port 8099 is not reachable from the LAN.
+- [ ] The **Configuration** tab shows **Remote access** as its own section.
+- [ ] With `remote_access` filled in: port 9119 and the sidebar ask for the login,
+      Hermes Desktop connects, and an OAuth MCP server (e.g. Notion) connects. Both
+      with `ssl` on and behind Cloudflared (`ssl` off).
+- [ ] Without `public_url`: port 9119 answers 400, the sidebar works without login.
+- [ ] `localhost:9119` answers 421 (loopback hosts are the sidebar's, refused on 9119):
+      test locally with `public_url: http://hermes.localhost:9119` or the LAN IP.
+- [ ] `ssl` on with a missing certificate: 9119 is closed, the sidebar still works.
 
 ## Data
 

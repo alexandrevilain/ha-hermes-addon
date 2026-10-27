@@ -9,7 +9,11 @@ to you on Telegram, and can see and control your home.
 ## What you get
 
 - **Hermes in your sidebar.** The official web dashboard (chat, config, API keys,
-  sessions, skills, cron) behind Home Assistant's login. No extra password, no open port.
+  sessions, skills, cron) behind Home Assistant's login. By default, the app opens
+  no port.
+- **Hermes Desktop and the mobile app (optional).** Turn on remote access to use
+  them, and MCP servers that sign in with OAuth (Notion...). Hermes then asks for
+  its own login, in the sidebar too.
 - **Telegram (and other messaging apps).** The gateway runs 24/7. Set up a bot in
   one QR scan from the dashboard.
 - **Home Assistant control.** Hermes can see and control your home, from the

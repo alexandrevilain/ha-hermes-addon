@@ -16,10 +16,14 @@ RUN cd /opt/hermes/hermes_cli/web_dist/assets \
 # nginx service + config.
 COPY rootfs /
 
-# Loopback bind = no dashboard login; Home Assistant ingress does the auth.
+# The dashboard listens on loopback only, on port 9120. nginx sits in front of it:
+# - port 8099 is the sidebar (ingress). Home Assistant already checks the user there.
+# - port 9119 is the published port, for remote access.
+# On loopback, Hermes asks for no login. Once HERMES_DASHBOARD_PUBLIC_URL is set
+# (see cont-init.d/016-direct-access), it asks for its login on every request.
 ENV HERMES_DASHBOARD=1 \
     HERMES_DASHBOARD_HOST=127.0.0.1 \
-    HERMES_DASHBOARD_PORT=9119
+    HERMES_DASHBOARD_PORT=9120
 
 # Gateway stays up even with no platform configured.
 CMD ["gateway", "run"]
