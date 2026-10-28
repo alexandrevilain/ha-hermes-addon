@@ -1,5 +1,5 @@
 name: Hermes Agent
-version: 0.0.2
+version: 0.1.0
 slug: hermes
 description: Hermes Agent (Nous Research) with its web dashboard in the sidebar.
 url: https://github.com/alexandrevilain/ha-hermes-addon
