@@ -1,5 +1,5 @@
 # Official image, pinned by digest. Renovate bumps it.
-FROM nousresearch/hermes-agent:v0.22.5@sha256:9c5561579f3ffdf333401797094ac3a743738d6c25d40f4331c7bf77b694238d
+FROM nousresearch/hermes-agent:v0.23.5@sha256:bc79a80fc9cb97521f4380c5d5b2ad88e2469e50fc1d5027339bbb42cc206854
 
 # nginx as an extra s6 service (see rootfs/), in front of the loopback-only dashboard.
 RUN apt-get update \
